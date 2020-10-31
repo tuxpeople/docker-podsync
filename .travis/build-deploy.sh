@@ -83,7 +83,7 @@ function multi_arch_docker::buildx() {
     --platform "${DOCKER_PLATFORMS// /,}" \
     $PUSHARG \
     --progress plain \
-    --build-arg PCURVERSION=${PCURVERSION} \
+    --build-arg PODSYNC_VERSION=${PODSYNC_VERSION} \
     -f Dockerfile \
     "$@" \
     .
@@ -161,6 +161,6 @@ else
 fi
 
 DOCKER_BASE="tdeutsch/openshift-cli"
-PCURVERSION=$(curl -s https://github.com/mxpv/podsync/releases/ | grep tree -m 1 | cut -d'"' -f2 | cut -d'/' -f5)
+PODSYNC_VERSION=$(curl -s https://github.com/mxpv/podsync/releases/ | grep tree -m 1 | cut -d'"' -f2 | cut -d'/' -f5)
 
 set -ex; multi_arch_docker::main; set +x
