@@ -160,7 +160,7 @@ else
     fi
 fi
 
-DOCKER_BASE="tdeutsch/openshift-cli"
+DOCKER_BASE=${DOCKER_USER}/$(echo ${TRAVIS_REPO_SLUG} | cut -d'/' -f2 | cut -d'-' -f2-)
 PODSYNC_VERSION=$(curl -s https://github.com/mxpv/podsync/releases/ | grep tree -m 1 | cut -d'"' -f2 | cut -d'/' -f5)
 
 set -ex; multi_arch_docker::main; set +x
