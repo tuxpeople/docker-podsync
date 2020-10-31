@@ -9,6 +9,7 @@ RUN go build -o /bin/podsync ./cmd/podsync
 
 FROM alpine:3.12
 WORKDIR /app/
+# hadolint ignore=DL3018,DL3017
 RUN apk --no-cache upgrade && apk --no-cache add ca-certificates ffmpeg tzdata youtube-dl
 COPY --from=builder /bin/podsync .
 CMD ["/app/podsync"]
