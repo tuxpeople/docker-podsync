@@ -1,1 +1,1 @@
-# docker-openshiftclient
+# docker-podsync
