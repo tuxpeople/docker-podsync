@@ -14,6 +14,8 @@ on:
     tags: 'v*.*.*'
   schedule:
     - cron: "0 13 * * 1"
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
 
 jobs:
   docker:
