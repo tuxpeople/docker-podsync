@@ -10,7 +10,7 @@ name: ci
 
 on:
   push:
-    branches: master
+    branches: [master, main]
     tags: 'v*.*.*'
   schedule:
     - cron: "0 13 * * 1"
