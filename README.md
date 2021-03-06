@@ -19,7 +19,8 @@ Read here for more: https://github.com/mxpv/podsync/issues/56
   ```amd64```, ```armv7```, ```armv6``` and ```arm64```
 
 ## Image tags
-- ```latest``` always refers to the latest tagged release ([Dockerfile])(https://github.com/tuxpeople/docker-podsync/blob/master/Dockerfile)
+- ```latest``` gets automatically built on every push to master and also via a weekly cron job
+- There are tags for major, minor and dotreleases (eg. ```1.0.0```, ```1.0```, ```1``` )
 
 ## Usage
 You can either deploy this container standalone to test stuff, or use it as a side car if you need some special features in your pod. One use case as a side car is analyse traffic with tcpdump.

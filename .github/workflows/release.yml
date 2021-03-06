@@ -60,11 +60,6 @@ jobs:
           else
               TAGS="${{ env.IMAGENAME }}:${VERSION}"
           fi
-          if [[ $GITHUB_REF == refs/heads/* ]]; then
-            TAGS="${{ env.IMAGENAME }}:${{ env.DEFAULT_TAG }}"
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            TAGS="${{ env.IMAGENAME }}:pr-${{ github.event.number }}"
-          fi
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
       -
