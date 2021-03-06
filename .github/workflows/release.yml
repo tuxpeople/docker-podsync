@@ -61,11 +61,7 @@ jobs:
               TAGS="${{ env.IMAGENAME }}:${VERSION}"
           fi
           if [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ]; then
-              VERSION=${{ env.DEFAULT_TAG }}
-            fi
-            TAGS="${{ env.IMAGENAME }}:${VERSION}"
+            TAGS="${{ env.IMAGENAME }}:${{ env.DEFAULT_TAG }}"
           elif [[ $GITHUB_REF == refs/pull/* ]]; then
             TAGS="${{ env.IMAGENAME }}:pr-${{ github.event.number }}"
           fi
