@@ -15,8 +15,6 @@ Read here for more: https://github.com/mxpv/podsync/issues/56
   https://github.com/tuxpeople/docker-podsync
 * **Where to file issues:**
   https://github.com/tuxpeople/docker-podsync/issues
-* **Maintained by:**
-  ["tuxpeople"](https://github.com/tuxpeople)
 * **Supported architectures:**
   ```amd64```, ```armv7```, ```armv6``` and ```arm64```
 
@@ -33,5 +31,5 @@ docker pull tdeutsch/podsync:<tag>
 or
 
 ```sh
-docker pull tdeutsch/podsyncr:<tag>
+docker pull quay.io/tdeutsch/podsync:<tag>
 ```
