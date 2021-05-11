@@ -5,7 +5,7 @@ ENV PODSYNC_VERSION=${PODSYNC_VERSION}
 LABEL stage=builder
 WORKDIR /workspace
 #hadolint ignore=DL4006
-RUN wget -O - https://github.com/mxpv/podsync/archive/${PODSYNC_VERSION}.tar.gz | tar -xz --strip-components=1
+RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${PODSYNC_VERSION}.tar.gz | tar -xz --strip-components=1
 RUN go build -o /bin/podsync ./cmd/podsync
 
 FROM alpine:3.13.5
