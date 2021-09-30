@@ -5,6 +5,7 @@
 ![Docker Stars Badge](https://img.shields.io/docker/stars/tdeutsch/podsync)
 ![Docker Size Badge](https://img.shields.io/docker/image-size/tdeutsch/podsync)
 
+    Caution: No more quay.io!
 ## Quick reference
 
 This Repo is solely for me having a arm64 image for [Podsync](https://github.com/mxpv/podsync). It includes a GitHub Workflow to build Podsync for AMD64, ARM64, ARMv6 and ARMv7. Use it at your own risk. No warranty. No support.
@@ -19,9 +20,10 @@ Read here for more: https://github.com/mxpv/podsync/issues/56
   ```amd64```, ```armv7```, ```armv6``` and ```arm64```
 
 ## Image tags
-- ```latest``` gets automatically built on every push to master and also via a weekly cron job
-- There are tags for major, minor and dotreleases (eg. ```1.0.0```, ```1.0```, ```1``` )
+- There are tags for major, minor and dotreleases of podsync (eg. ```1.0.0```, ```1.0```, ```1``` )
+- ```latest``` refers to the latest release of podsync
 
+The images get rebuild automatically every week.
 ## Usage
 
 ```sh
@@ -31,5 +33,5 @@ docker pull tdeutsch/podsync:<tag>
 or
 
 ```sh
-docker pull quay.io/tdeutsch/podsync:<tag>
+docker pull ghcr.io/tuxpeople/podsync:<tag>
 ```
