@@ -1,0 +1,36 @@
+name: Tag on upstream Release
+
+on:
+  schedule:
+    - cron: "0/5 0 * * *"
+
+env:
+  UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"          # Upstream repo
+
+jobs:
+  check_release:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get latest repository tag
+      id: get_latest_tag
+      run: |
+        tag=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+        echo "::debug::git repository tag ${tag}"
+        echo "::set-output name=tag::${tag}"
+
+    - name: Get upstream version
+      id: get_upstream
+      run: |
+        version=$(curl --silent https://api.github.com/repos/${ env.UPSTREAM_GITHUB_REPOSITORY }/tags | jq -r '.[0].name' | sed -e 's/^v//')
+        echo "::debug::get upstream version ${version}"
+        echo "::set-output name=version::${version}"
+
+    - name: Tag repository with latest upstream version, if needed
+      id: tag_repository
+      if: steps.get_latest_tag.outputs.tag != steps.get_upstream.outputs.version
+      uses: tvdias/github-tagger@v0.0.1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{steps.get_upstream.outputs.version}}
