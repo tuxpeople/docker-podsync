@@ -2,7 +2,8 @@ name: Tag on upstream release
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    # - cron: "0 0 * * *"
+    - cron: "*/5 * * * *" # uncomment for debug (every 5 min)
 
 env:
   UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"          # Upstream repo
