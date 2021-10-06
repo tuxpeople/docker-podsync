@@ -6,9 +6,13 @@ name: "Build & Release"
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - 'master'
+      - 'main'
   workflow_dispatch:
+  repository_dispatch:
+    types:
+      - 'new-version'
 
 env:
   PLATFORMS: "linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64"     # Build for which platforms
