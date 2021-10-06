@@ -1,11 +1,11 @@
 FROM golang:alpine AS builder
-# PODSYNC_VERSION can be changed, by passing `--build-arg PODSYNC_VERSION=<new version>` during docker build
-ARG PODSYNC_VERSION=v1
-ENV PODSYNC_VERSION=${PODSYNC_VERSION}
+# UPSTREAM_VERSION can be changed, by passing `--build-arg UPSTREAM_VERSION=<new version>` during docker build
+ARG UPSTREAM_VERSION=v1
+ENV UPSTREAM_VERSION=${UPSTREAM_VERSION}
 LABEL stage=builder
 WORKDIR /workspace
 #hadolint ignore=DL4006
-RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${PODSYNC_VERSION}.tar.gz | tar -xz --strip-components=1; go build -o /bin/podsync ./cmd/podsync
+RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${UPSTREAM_VERSION}.tar.gz | tar -xz --strip-components=1; go build -o /bin/podsync ./cmd/podsync
 
 FROM alpine:3.14.2
 WORKDIR /app/

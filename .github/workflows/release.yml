@@ -45,13 +45,13 @@ jobs:
         name: Generate Build-Args
         id: build-args
         run: |
-          echo ::set-output name=build-arg1::"PODSYNC_VERSION=${{ steps.get_upstream.outputs.version }}"
+          echo ::set-output name=build-arg1::"UPSTREAM_VERSION=${{ steps.get_upstream.outputs.version }}"
           # echo ::set-output name=build-arg2::"buildarg2"
       -
         name: Prepare
         id: prep
         run: |
-          IMAGENAME=$(echo ${{ github.repository }} | sed 's/PODSYNC_VERSION=//g')
+          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
           IMAGEPREFIX="ghcr.io/${{ github.repository_owner }}"
           IMAGE="${IMAGEPREFIX}/${IMAGENAME}"
           VERSION=${{ steps.get_upstream.outputs.version }}
