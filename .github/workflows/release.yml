@@ -44,7 +44,6 @@ jobs:
         name: Generate Build-Args
         id: build-args
         run: |
-          PODSYNC_VERSION=$(curl -s https://github.com/mxpv/podsync/releases/ | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
           echo ::set-output name=build-arg1::"PODSYNC_VERSION=${{ steps.get_upstream.outputs.version }}"
           # echo ::set-output name=build-arg2::"buildarg2"
       -
