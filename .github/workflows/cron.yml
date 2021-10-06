@@ -24,7 +24,7 @@ jobs:
     - name: Get upstream version
       id: get_upstream
       run: |
-        version=$(curl --silent https://api.github.com/repos/${ env.UPSTREAM_GITHUB_REPOSITORY }/tags | jq -r '.[0].name' | sed -e 's/^v//')
+        version=$(curl --silent https://api.github.com/repos/${{ env.UPSTREAM_GITHUB_REPOSITORY }}/tags | jq -r '.[0].name' | sed -e 's/^v//')
         echo "::debug::get upstream version ${version}"
         echo "::set-output name=version::${version}"
 
