@@ -40,6 +40,5 @@ jobs:
       if: steps.get_latest_tag.outputs.tag != steps.get_upstream.outputs.version
       uses: peter-evans/repository-dispatch@v1
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        repository: ${GITHUB_REPOSITORY}
+        token: ${{ secrets.REPO_ACCESS_TOKEN }}
         event-type: new-version
