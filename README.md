@@ -23,7 +23,7 @@ Read here for more: https://github.com/mxpv/podsync/issues/56
 - There are tags for major, minor and dotreleases of podsync (eg. ```1.0.0```, ```1.0```, ```1``` )
 - ```latest``` refers to the latest release of podsync
 
-The images get rebuild automatically every week.
+The images get rebuild automatically every week and on every push to this repo.
 ## Usage
 
 ```sh
