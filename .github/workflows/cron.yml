@@ -1,4 +1,4 @@
-name: Tag on upstream Release
+name: Tag on upstream release
 
 on:
   schedule:
