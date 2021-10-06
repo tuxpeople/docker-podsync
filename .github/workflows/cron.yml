@@ -31,7 +31,7 @@ jobs:
     - name: Tag repository with latest upstream version, if needed
       id: tag_repository
       if: steps.get_latest_tag.outputs.tag != steps.get_upstream.outputs.version
-      uses: tvdias/github-tagger@v0.0.1
+      uses: tvdias/github-tagger@v0.0.2
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{steps.get_upstream.outputs.version}}
