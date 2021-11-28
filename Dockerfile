@@ -10,6 +10,6 @@ RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${UPSTREAM_VERSION}.ta
 FROM alpine:3.14.2
 WORKDIR /app/
 # hadolint ignore=DL3018,DL3017
-RUN apk --no-cache upgrade && apk --no-cache add ca-certificates ffmpeg tzdata youtube-dl
+RUN apk --no-cache upgrade && apk --no-cache add ca-certificates ffmpeg tzdata yt-dlp && ln -s /usr/bin/yt-dlp /usr/bin/youtube-dl
 COPY --from=builder /bin/podsync .
 CMD ["/app/podsync"]
