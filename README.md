@@ -7,7 +7,7 @@
 
     Caution: No more quay.io!
 
-**Warning:** This image now uses yt-dlp instead of youtube-dl  
+**Warning:** This image now uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) instead of [youtube-dl](https://github.com/ytdl-org/youtube-dl/)  
 *(see https://github.com/mxpv/podsync/issues/236 and https://github.com/mxpv/podsync/issues/237)*
 ## Quick reference
 
