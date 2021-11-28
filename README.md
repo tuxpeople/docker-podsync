@@ -7,7 +7,8 @@
 
     Caution: No more quay.io!
 
-    Warning: This image now uses yt-dlp instead of youtube-dl (see https://github.com/mxpv/podsync/issues/236 and https://github.com/mxpv/podsync/issues/237)
+**Warning:** This image now uses yt-dlp instead of youtube-dl  
+*(see https://github.com/mxpv/podsync/issues/236 and https://github.com/mxpv/podsync/issues/237)*
 ## Quick reference
 
 This Repo is solely for me having a arm64 image for [Podsync](https://github.com/mxpv/podsync). It includes a GitHub Workflow to build Podsync for AMD64, ARM64, ARMv6 and ARMv7. Use it at your own risk. No warranty. No support.
