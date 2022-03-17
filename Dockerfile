@@ -7,7 +7,7 @@ WORKDIR /workspace
 #hadolint ignore=DL4006
 RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${UPSTREAM_VERSION}.tar.gz | tar -xz --strip-components=1; go build -o /bin/podsync ./cmd/podsync
 
-FROM alpine:3.15.0
+FROM alpine:3.15.1
 WORKDIR /app/
 # hadolint ignore=DL3018,DL3017
 RUN apk --no-cache upgrade && apk --no-cache add ca-certificates ffmpeg tzdata yt-dlp && ln -s /usr/bin/yt-dlp /usr/bin/youtube-dl
