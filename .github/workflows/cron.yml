@@ -40,7 +40,7 @@ jobs:
     - name: Repository dispatch workflow
       id: dispatch_workflow
       if: steps.get_latest_tag.outputs.tag != steps.get_upstream.outputs.version
-      uses: peter-evans/repository-dispatch@v1
+      uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
         event-type: new-version
