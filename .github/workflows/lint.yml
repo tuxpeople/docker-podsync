@@ -3,8 +3,6 @@ name: "Linting Dockerfile"
 on:
   workflow_call:
   workflow_dispatch:
-  pull_request:
-    types: [assigned, opened, synchronize, reopened]
 
 jobs:
   hadolint:
