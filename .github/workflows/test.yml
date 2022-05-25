@@ -64,6 +64,7 @@ jobs:
           fi
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=imagename::${IMAGENAME}
+          echo ::set-output name=image::${IMAGE}
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
       -
@@ -114,8 +115,8 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          image: ${{ steps.prep.outputs.imagename }}:latest
-          args: --file=Dockerfile --project-name=${{ steps.prep.outputs.imagename }}:latest
+          image: ${{ steps.prep.outputs.image }}:latest
+          args: --file=Dockerfile --project-name=${{ steps.prep.outputs.image }}:latest
         if: github.event_name != 'pull_request'
       -
         name: Test the image with Snyk for high-severity vulnerabilities
@@ -123,7 +124,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ steps.prep.outputs.imagename }}:latest
+          image: ${{ steps.prep.outputs.image }}:latest
           args: --file=Dockerfile --severity-threshold=high
       -
         name: Output a SARIF file from Snyk
@@ -133,7 +134,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           sarif: true
-          image: ${{ steps.prep.outputs.imagename }}:latest
+          image: ${{ steps.prep.outputs.image }}:latest
           args: --file=Dockerfile
         if: github.ref == 'refs/heads/main'
       -
