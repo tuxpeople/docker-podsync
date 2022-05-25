@@ -122,16 +122,16 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-      -
-        name: Monitor published image for vulnerabilities with Snyk
-        uses: snyk/actions/docker@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: monitor
-          image: ${{ steps.prep.outputs.tags }}
-          args: --file=Dockerfile --project-name=${{ steps.prep.outputs.tags }}
-        if: github.event_name != 'pull_request'
+      # -
+      #   name: Monitor published image for vulnerabilities with Snyk
+      #   uses: snyk/actions/docker@master
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #   with:
+      #     command: monitor
+      #     image: ${{ steps.prep.outputs.tags }}
+      #     args: --file=Dockerfile --project-name=${{ steps.prep.outputs.tags }}
+      #   if: github.event_name != 'pull_request'
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
