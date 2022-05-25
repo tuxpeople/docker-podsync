@@ -1,4 +1,4 @@
-name: "CI Publish & security check"
+name: "Test"
 
 # This worflow needs those secrets:
 #
@@ -55,6 +55,10 @@ jobs:
           IMAGEPREFIX="ghcr.io/${{ github.repository_owner }}"
           IMAGE="${IMAGEPREFIX}/${IMAGENAME}"
           VERSION=${{ steps.get_version.outputs.version }}
+
+          if [[ $GITHUB_REF == refs/pull/* ]]; then
+            VERSION=pr${{ github.event.number }}-${VERSION}
+          fi
 
           TAGS="${IMAGE}:${VERSION}"
           if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
@@ -126,6 +130,7 @@ jobs:
         with:
           image: ${{ steps.prep.outputs.image }}:latest
           args: --file=Dockerfile --severity-threshold=high
+        if: github.event_name != 'pull_request'
       -
         name: Output a SARIF file from Snyk
         continue-on-error: true
@@ -136,17 +141,17 @@ jobs:
           sarif: true
           image: ${{ steps.prep.outputs.image }}:latest
           args: --file=Dockerfile
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
       -
         name: Upload SARIF artifact
         uses: actions/upload-artifact@v2
         with:
           name: SARIF
           path: snyk.sarif
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
       -
         name: Upload the SARIF file to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: snyk.sarif
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
