@@ -31,7 +31,7 @@ jobs:
         name: Get current version
         id: get_version
         run: |
-          version=$(curl --silent https://api.github.com/repos/${UPSTREAM_GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+          version=$(curl --silent https://api.github.com/repos/${env.UPSTREAM_GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
           if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             version="v${version}"
           fi
