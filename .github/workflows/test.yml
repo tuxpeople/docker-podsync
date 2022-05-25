@@ -23,18 +23,19 @@ env:
 #####
 
 jobs:
-  lint:
-    uses: ./.github/workflows/lint.yml
-
-  build:
-    needs: [lint]
+  docker:
     runs-on: ubuntu-latest
+    #if: !contains(github.event.head_commit.message, '[skip ci]')
+
     steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2.4.0
       -
         name: Get current version
         id: get_version
         run: |
-          version=$(curl --silent https://api.github.com/repos/${{env.UPSTREAM_GITHUB_REPOSITORY}}/tags  | jq -r '.[0].name' | sed -e 's/^v//')
+          version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/tags  | jq -r '.[0].name' | sed -e 's/^v//')
           if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             version="v${version}"
           fi
@@ -62,27 +63,20 @@ jobs:
             TAGS="$TAGS,${IMAGE}:${MINOR},${IMAGE}:${MAJOR},${IMAGE}:latest"
           fi
           echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=scantag::$(echo ${TAGS} | cut -d',' -f1)
           echo ::set-output name=imagename::${IMAGENAME}
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
       -
-        name: Checkout
-        uses: actions/checkout@v2.4.0
+        name: Hadolint
+        uses: brpaz/hadolint-action@v1.5.0
+        with: 
+          dockerfile: Dockerfile
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      -
-        name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
       -
         name: Login to GHCR
         uses: docker/login-action@v1
@@ -92,7 +86,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
-        name: Build container image
+        name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2.9.0
         with:
@@ -113,25 +107,23 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-      # -
-      #   name: Monitor published image for vulnerabilities with Snyk
-      #   uses: snyk/actions/docker@master
-      #   env:
-      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      #   with:
-      #     command: monitor
-      #     image: ${{ steps.prep.outputs.tags }}
-      #     args: --file=Dockerfile --project-name=${{ steps.prep.outputs.tags }}
-      #   if: github.event_name != 'pull_request'
+      -
+        name: Monitor published image for vulnerabilities with Snyk
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          image: ${{ steps.prep.outputs.imagename }}:latest
+          args: --file=Dockerfile --project-name=${{ steps.prep.outputs.imagename }}:latest
+        if: github.event_name != 'pull_request'
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ steps.prep.outputs.scantag }}
+          image: ${{ steps.prep.outputs.imagename }}:latest
           args: --file=Dockerfile --severity-threshold=high
       -
         name: Output a SARIF file from Snyk
@@ -141,7 +133,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           sarif: true
-          image: ${{ steps.prep.outputs.scantag }}
+          image: ${{ steps.prep.outputs.imagename }}:latest
           args: --file=Dockerfile
         if: github.ref == 'refs/heads/main'
       -
@@ -157,39 +149,3 @@ jobs:
         with:
           sarif_file: snyk.sarif
         if: github.ref == 'refs/heads/main'
-      # -
-      #   name: Push
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     push: true
-      #     tags: ${{ steps.prep.outputs.tags }}
-      #     cache-from: type=local,src=/tmp/.buildx-cache
-      #     cache-to: type=local,dest=/tmp/.buildx-cache
-      #   if: github.event_name != 'pull_request'
-      # -
-      #   name: Copy to Docker Hub
-      #   id: copy_images
-      #   if: ${{ github.event_name != 'pull_request' }}
-      #   run: |
-      #     for i in $(echo ${{ steps.prep.outputs.tags }} | sed "s/,/ /g")
-      #     do
-      #         GHTAG=$(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
-      #         skopeo copy --all --src-creds=${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }} --dest-creds=${{ env.DOCKER_USER }}:${{ secrets.DOCKERPASSWORD }} docker://${i} docker://${GHTAG}
-      #     done
-      # -
-      #   name: Docker Hub Description
-      #   uses: peter-evans/dockerhub-description@v2.4.3
-      #   if: ${{ github.event_name != 'pull_request' }}
-      #   with:
-      #     username: ${{ env.DOCKER_USER }}
-      #     password: ${{ secrets.DOCKERPASSWORD }}
-      #     repository: "${{ env.DOCKER_USER }}/${{ steps.prep.outputs.imagename }}"
-      #     short-description: ${{ github.event.repository.description }}
-      -
-        # Temp fix
-        # https://github.com/docker/build-push-action/issues/252
-        # https://github.com/moby/buildkit/issues/1896
-        name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
