@@ -101,7 +101,6 @@ jobs:
       -
         name: Login to GHCR
         uses: docker/login-action@v2
-        if: github.event_name != 'pull_request'
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -114,7 +113,7 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: ${{ env.PLATFORMS }}
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.prep.outputs.tags }}
           build-args: |
             ${{ steps.build-args.outputs.build-arg1 }}
