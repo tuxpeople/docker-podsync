@@ -54,7 +54,7 @@ jobs:
           echo ::set-output name=imagename::${IMAGENAME}
       -
         name: Build
-        id: get_version
+        id: build
         run: |
           docker build --build-arg ${{ steps.build-args.outputs.build-arg1 }} -t ${{ steps.prep.outputs.imagename }}:scan .
       -
