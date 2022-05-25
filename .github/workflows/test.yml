@@ -153,7 +153,7 @@ jobs:
           args: --file=Dockerfile
         if: github.ref == 'refs/heads/main'
       -
-        name: Upload SARIF 
+        name: Upload SARIF artifact
         uses: actions/upload-artifact@v2
         with:
           name: SARIF
@@ -163,7 +163,7 @@ jobs:
         name: Upload the SARIF file to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: snyk+securecodewarrior.sarif
+          sarif_file: snyk.sarif
         if: github.ref == 'refs/heads/main'
       # -
       #   name: Push
