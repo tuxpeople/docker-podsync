@@ -72,7 +72,7 @@ jobs:
             TAGS="$TAGS,${IMAGE}:${MINOR},${IMAGE}:${MAJOR},${IMAGE}:latest"
           fi
           echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=scantag::$(echo ${TAGS} | cut -d',' -f1')
+          echo ::set-output name=scantag::$(echo ${TAGS} | cut -d',' -f1)
           echo ::set-output name=imagename::${IMAGENAME}
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
