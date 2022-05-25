@@ -72,6 +72,7 @@ jobs:
             TAGS="$TAGS,${IMAGE}:${MINOR},${IMAGE}:${MAJOR},${IMAGE}:latest"
           fi
           echo ::set-output name=tags::${TAGS}
+          echo ::set-output name=scantag::$(echo ${TAGS} | cut -d',' -f1')
           echo ::set-output name=imagename::${IMAGENAME}
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
@@ -138,9 +139,8 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ steps.prep.outputs.tags }}
+          image: ${{ steps.prep.outputs.scantag }}
           args: --file=Dockerfile --severity-threshold=high
-        if: github.event_name == 'pull_request'
       -
         name: Output a SARIF file from Snyk
         continue-on-error: true
