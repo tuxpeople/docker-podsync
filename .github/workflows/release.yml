@@ -30,7 +30,16 @@ env:
 #####
 
 jobs:
-  docker:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  security:
+    uses: ./.github/workflows/build_scan.yml
+    secrets:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  release:
+    needs: [security, lint]
     runs-on: ubuntu-latest
     #if: !contains(github.event.head_commit.message, '[skip ci]')
 
