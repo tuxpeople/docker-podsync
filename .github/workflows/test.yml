@@ -76,6 +76,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
+        name: Checkout
+        uses: actions/checkout@v2.4.0
+      -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
       -
@@ -124,6 +127,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - 
+        name: Checkout
+        uses: actions/checkout@v2.4.0
+      -
         name: Monitor published image for vulnerabilities with Snyk
         uses: snyk/actions/docker@master
         env:
