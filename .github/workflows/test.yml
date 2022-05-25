@@ -24,13 +24,7 @@ env:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
-    #if: !contains(github.event.head_commit.message, '[skip ci]')
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2.4.0
-      - uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/lint.yml@main
 
   build:
     needs: [lint]
