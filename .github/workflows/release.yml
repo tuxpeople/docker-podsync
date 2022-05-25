@@ -11,6 +11,8 @@ on:
   repository_dispatch:
     types:
       - 'new-version'
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
 
 env:
   PLATFORMS: "linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64"     # Build for which platforms
