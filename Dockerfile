@@ -12,7 +12,7 @@ WORKDIR /app/
 # hadolint ignore=DL3018,DL3017
 RUN apk --no-cache upgrade && \
     apk --no-cache add ca-certificates ffmpeg tzdata && \
-    wget -O /usr/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp && \
+    wget -q -O /usr/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp && \
     chmod +x /usr/bin/yt-dlp && \
     ln -s /usr/bin/yt-dlp /usr/bin/youtube-dl
 COPY --from=builder /bin/podsync .
