@@ -1,0 +1,201 @@
+name: "CI Publish & security check"
+
+# This worflow needs those secrets:
+#
+# DOCKERPASSWORD = Docker Hub token
+
+on:
+  workflow_dispatch:
+
+env:
+  PLATFORMS: "linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64"     # Build for which platforms
+  DOCKER_USER: "tdeutsch"                                            # Which user to use to login to DockerHub
+  UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"                         # Upstream repo
+
+#####
+# To rebuild someone else's repo, do this:
+#
+# - New env    REPOSITORY: "githubuser/githubrepo"
+# - Add this to the checkout:
+#        with:
+#          repository: ${{ env.REPOSITORY }}
+# - One may also need to disable hadolint, due to the quality of others Dockerfile
+#####
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    #if: !contains(github.event.head_commit.message, '[skip ci]')
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2.4.0
+      -
+        name: Get current version
+        id: get_version
+        run: |
+          version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+          if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            version="v${version}"
+          fi
+          echo "::debug::get current version ${version}"
+          echo "::set-output name=version::${version}"
+      -
+        name: Generate Build-Args
+        id: build-args
+        run: |
+          echo ::set-output name=build-arg1::"UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}"
+          # echo ::set-output name=build-arg2::"buildarg2"
+      -
+        name: Prepare
+        id: prep
+        run: |
+          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          IMAGEPREFIX="ghcr.io/${{ github.repository_owner }}"
+          IMAGE="${IMAGEPREFIX}/${IMAGENAME}"
+          VERSION=${{ steps.get_version.outputs.version }}
+
+          TAGS="${IMAGE}:${VERSION}"
+          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            MINOR=${VERSION%.*}
+            MAJOR=${MINOR%.*}
+            TAGS="$TAGS,${IMAGE}:${MINOR},${IMAGE}:${MAJOR},${IMAGE}:latest"
+          fi
+          echo ::set-output name=tags::${TAGS}
+          echo ::set-output name=imagename::${IMAGENAME}
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+      -
+        name: Hadolint
+        uses: brpaz/hadolint-action@v1.5.0
+        with: 
+          dockerfile: Dockerfile
+  build:
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.2.0
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      -
+        name: Login to GHCR
+        uses: docker/login-action@v1
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2.9.0
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ env.PLATFORMS }}
+          push: false
+          tags: ${{ steps.prep.outputs.tags }}
+          build-args: |
+            ${{ steps.build-args.outputs.build-arg1 }}
+            ${{ steps.build-args.outputs.build-arg2 }}
+          labels: |
+            org.opencontainers.image.title=${{ steps.prep.outputs.imagename }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.version=${{ steps.prep.outputs.version }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+  security:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Monitor published image for vulnerabilities with Snyk
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          image: ${{ steps.prep.outputs.tags }}
+          args: --file=Dockerfile --project-name=${{ steps.prep.outputs.tags }}
+        if: github.event_name != 'pull_request'
+      -
+        name: Test the image with Snyk for high-severity vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ steps.prep.outputs.tags }}
+          args: --file=Dockerfile --severity-threshold=high
+        if: github.event_name == 'pull_request'
+      -
+        name: Output a SARIF file from Snyk
+        continue-on-error: true
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          sarif: true
+          image: ${{ steps.prep.outputs.tags }}
+          args: --file=Dockerfile
+        if: github.ref == 'refs/heads/main'
+      -
+        name: Secure Code Warrior
+        uses: SecureCodeWarrior/github-action-add-sarif-contextual-training@v1
+        with:
+          inputSarifFile: snyk.sarif
+          outputSarifFile: snyk+securecodewarrior.sarif
+        if: github.ref == 'refs/heads/main'
+      - uses: actions/upload-artifact@v2
+        with:
+          name: SARIF
+          path: snyk+securecodewarrior.sarif
+        if: github.ref == 'refs/heads/main'
+      -
+        name: Upload the SARIF file to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk+securecodewarrior.sarif
+        if: github.ref == 'refs/heads/main'
+      # -
+      #   name: Push
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     push: true
+      #     tags: ${{ steps.prep.outputs.tags }}
+      #     cache-from: type=local,src=/tmp/.buildx-cache
+      #     cache-to: type=local,dest=/tmp/.buildx-cache
+      #   if: github.event_name != 'pull_request'
+      # -
+      #   name: Copy to Docker Hub
+      #   id: copy_images
+      #   if: ${{ github.event_name != 'pull_request' }}
+      #   run: |
+      #     for i in $(echo ${{ steps.prep.outputs.tags }} | sed "s/,/ /g")
+      #     do
+      #         GHTAG=$(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
+      #         skopeo copy --all --src-creds=${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }} --dest-creds=${{ env.DOCKER_USER }}:${{ secrets.DOCKERPASSWORD }} docker://${i} docker://${GHTAG}
+      #     done
+      # -
+      #   name: Docker Hub Description
+      #   uses: peter-evans/dockerhub-description@v2.4.3
+      #   if: ${{ github.event_name != 'pull_request' }}
+      #   with:
+      #     username: ${{ env.DOCKER_USER }}
+      #     password: ${{ secrets.DOCKERPASSWORD }}
+      #     repository: "${{ env.DOCKER_USER }}/${{ steps.prep.outputs.imagename }}"
+      #     short-description: ${{ github.event.repository.description }}
