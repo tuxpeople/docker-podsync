@@ -28,14 +28,8 @@ jobs:
     #if: !contains(github.event.head_commit.message, '[skip ci]')
 
     steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v2.4.0
-      -
-        name: Hadolint
-        uses: brpaz/hadolint-action@v1.5.0
-        with: 
-          dockerfile: Dockerfile
+      - uses: ./.github/workflows/lint.yml
+
   build:
     needs: [lint]
     runs-on: ubuntu-latest
@@ -149,7 +143,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           sarif: true
-          image: ${{ steps.prep.outputs.tags }}
+          image: ${{ steps.prep.outputs.scantag }}
           args: --file=Dockerfile
         if: github.ref == 'refs/heads/main'
       -

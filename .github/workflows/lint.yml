@@ -1,0 +1,21 @@
+name: "Hadolint"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2.4.0
+      -
+        name: Hadolint
+        uses: brpaz/hadolint-action@v1.5.0
+        with: 
+          dockerfile: Dockerfile
