@@ -153,16 +153,11 @@ jobs:
           args: --file=Dockerfile
         if: github.ref == 'refs/heads/main'
       -
-        name: Secure Code Warrior
-        uses: SecureCodeWarrior/github-action-add-sarif-contextual-training@v1
-        with:
-          inputSarifFile: snyk.sarif
-          outputSarifFile: snyk+securecodewarrior.sarif
-        if: github.ref == 'refs/heads/main'
-      - uses: actions/upload-artifact@v2
+        name: Upload SARIF 
+        uses: actions/upload-artifact@v2
         with:
           name: SARIF
-          path: snyk+securecodewarrior.sarif
+          path: snyk.sarif
         if: github.ref == 'refs/heads/main'
       -
         name: Upload the SARIF file to GitHub Code Scanning
