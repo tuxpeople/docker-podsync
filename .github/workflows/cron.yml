@@ -18,7 +18,7 @@ jobs:
     - name: Get latest repository tag
       id: get_latest_tag
       run: |
-        tag=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+        tag=$(curl --silent https://api.github.com/repos/${UPSTREAM_GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
         echo "::debug::git repository tag ${tag}"
         echo "::set-output name=tag::${tag}"
 
