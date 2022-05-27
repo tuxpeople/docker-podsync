@@ -33,8 +33,12 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
-  security:
-    uses: ./.github/workflows/build_scan.yml
+  ci-build:
+    uses: ./.github/workflows/ci-build_scan.yml
+  
+  scan:
+    needs: [ci-build]
+    uses: ./.github/workflows/scan.yml
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 

@@ -1,0 +1,41 @@
+name: "Build & Scan"
+
+on:
+  workflow_call:
+    secrets:
+      SNYK_TOKEN:
+        required: true
+  workflow_dispatch:
+
+env:
+  UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"                         # Upstream repo
+
+jobs:
+  snyk:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.0.2
+      -
+        name: Prepare
+        id: prep
+        run: |
+          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          echo ::set-output name=imagename::${IMAGENAME}
+      -
+        name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      -
+        name: Test the image with Snyk for high-severity vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ steps.prep.outputs.imagename }}:test
+          args: --file=Dockerfile --severity-threshold=high
