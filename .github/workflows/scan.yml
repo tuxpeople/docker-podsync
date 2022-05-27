@@ -1,4 +1,4 @@
-name: "Build & Scan"
+name: "CI: security scan"
 
 on:
   workflow_call:
