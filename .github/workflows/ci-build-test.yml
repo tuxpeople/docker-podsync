@@ -40,12 +40,6 @@ jobs:
           IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
           echo ::set-output name=imagename::${IMAGENAME}
       -
-        name: Build & Save image
-        id: build
-        run: |
-          docker build --build-arg ${{ steps.build-args.outputs.build-arg1 }} -t ${{ steps.prep.outputs.imagename }}:test .
-          docker save ${{ steps.prep.outputs.imagename }}:test > ${{ steps.prep.outputs.imagename }}-test.tar
-      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       -
