@@ -5,6 +5,8 @@ on:
     secrets:
       SNYK_TOKEN:
         required: true
+      YTTOKEN:
+        required: true
   workflow_dispatch:
 
 env:
