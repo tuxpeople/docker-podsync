@@ -2,9 +2,6 @@ name: "CI: Quick build for other CI actions"
 
 on:
   workflow_call:
-    secrets:
-      SNYK_TOKEN:
-        required: true
   workflow_dispatch:
 
 env:

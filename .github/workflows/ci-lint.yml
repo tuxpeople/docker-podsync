@@ -1,4 +1,4 @@
-name: "Linting Dockerfile"
+name: "CI: Linting Dockerfile"
 
 on:
   workflow_call:

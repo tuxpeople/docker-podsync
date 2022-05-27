@@ -31,13 +31,13 @@ env:
 
 jobs:
   lint:
-    uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/ci-lint.yml
 
   ci-build:
     uses: ./.github/workflows/ci-build.yml
   
   scan:
     needs: [ci-build]
-    uses: ./.github/workflows/scan.yml
+    uses: ./.github/workflows/ci-scan.yml
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
