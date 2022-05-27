@@ -27,16 +27,13 @@ EOF
 
 docker run --name=test -p 8080:8080 -d -v /tmp/config.toml:/app/config.toml:ro --health-cmd='wget localhost:8080/podsync.opml -O - > /dev/null' --health-interval=10s podsync:test
 
-sleep 20
+sleep 5
 
-docker inspect --format='{{.State.Health.Status}}' test
-
-if [ $(docker inspect --format='{{.State.Health.Status}}' test) == "healthy" ]; then
-  echo "Image is healthy"
-else
-  echo "Image is unhealthy"
-  exit 1
-fi
+while [  $(docker inspect --format='{{.State.Health.Status}}' test) != "healthy" ]
+do
+  echo "Wait for image to become healthy"
+  sleep 10
+done
 
 FILE=$(docker logs test 2>&1 | grep "creating file" | grep mp3 | cut -d'=' -f5)
 wget -q localhost:8080/${FILE} -O - > /dev/null
