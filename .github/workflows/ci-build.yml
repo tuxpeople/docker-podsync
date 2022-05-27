@@ -47,4 +47,4 @@ jobs:
         with:
           name: ci-docker-image
           path: ${{ steps.prep.outputs.imagename }}-test.tar
-        retention-days: 2
+          retention-days: 2
