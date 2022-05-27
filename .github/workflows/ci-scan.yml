@@ -27,7 +27,7 @@ jobs:
         name: Download docker image
         uses: actions/download-artifact@v3
         with:
-          name: homeworkci-docker-image
+          name: ci-docker-image
       -
         name: Load docker image
         id: build
