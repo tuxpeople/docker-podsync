@@ -31,19 +31,13 @@ env:
 
 jobs:
   lint:
-    uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/cs-lint.yml
 
-  ci-build:
-    uses: ./.github/workflows/ci-build_scan.yml
-  
-  scan:
-    needs: [ci-build]
-    uses: ./.github/workflows/scan.yml
-    secrets:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  build-test:
+    uses: ./.github/workflows/ci-build-test.yml
 
   release:
-    needs: [security, lint]
+    needs: [build-test, lint]
     runs-on: ubuntu-latest
     #if: !contains(github.event.head_commit.message, '[skip ci]')
 
