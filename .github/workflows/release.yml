@@ -159,14 +159,14 @@ jobs:
         if: github.event_name != 'pull_request'
       -
         name: Upload SARIF artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: SARIF
           path: snyk.sarif
         if: github.event_name != 'pull_request'
       -
         name: Upload the SARIF file to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk.sarif
         if: github.event_name != 'pull_request'
