@@ -40,7 +40,8 @@ jobs:
         name: Build & Save
         id: build
         run: |
-          docker load < ${{ steps.prep.outputs.imagename }}-test.tar
+          docker build --build-arg ${{ steps.build-args.outputs.build-arg1 }} -t ${{ steps.prep.outputs.imagename }}:test .
+          docker save ${{ steps.prep.outputs.imagename }}:test > ${{ steps.prep.outputs.imagename }}-test.tar
       -
         name: Archive docker image
         uses: actions/upload-artifact@v3

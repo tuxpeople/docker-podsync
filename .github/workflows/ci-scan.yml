@@ -32,8 +32,7 @@ jobs:
         name: Load docker image
         id: build
         run: |
-          docker build --build-arg ${{ steps.build-args.outputs.build-arg1 }} -t ${{ steps.prep.outputs.imagename }}:test .
-          docker save ${{ steps.prep.outputs.imagename }}:test > ${{ steps.prep.outputs.imagename }}-test.tar
+          docker load < ${{ steps.prep.outputs.imagename }}-test.tar
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
