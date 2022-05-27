@@ -13,10 +13,7 @@ jobs:
         name: Checkout
         uses: actions/checkout@v3.0.2
       -
-        name: hadolint
-        uses: reviewdog/action-hadolint@v1.33.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review
-          filter_mode: diff_context
-          fail_on_error: true
+        name: Hadolint
+        uses: brpaz/hadolint-action@v1.5.0
+        with: 
+          dockerfile: Dockerfile
