@@ -119,7 +119,7 @@ jobs:
         name: Test docker image
         id: test
         env:
-          DEV_ENV_FILE : ${{secrets.YTTOKEN}}
+          YTTOKEN : ${{secrets.YTTOKEN}}
         shell: bash
         run: |
           test/test.sh
