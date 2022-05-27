@@ -94,7 +94,7 @@ jobs:
           image: ${{ steps.prep.outputs.imagename }}:test
           args: --file=Dockerfile --severity-threshold=high
 
-  test-image:
+  function-test:
     needs: [quick-build]
     runs-on: ubuntu-latest
     steps:
