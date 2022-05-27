@@ -61,7 +61,7 @@ jobs:
           retention-days: 2
 
   snyk-scan:
-    needs: [ci-build]
+    needs: [quick-build]
     runs-on: ubuntu-latest
     steps:
       -
@@ -93,7 +93,7 @@ jobs:
           args: --file=Dockerfile --severity-threshold=high
 
   test-image:
-    needs: [ci-build]
+    needs: [quick-build]
     runs-on: ubuntu-latest
     steps:
       -
