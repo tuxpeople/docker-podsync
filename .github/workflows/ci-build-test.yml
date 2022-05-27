@@ -3,14 +3,13 @@ name: "CI: Build & Test"
 on:
   workflow_call:
   workflow_dispatch:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
 
 env:
   UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"                         # Upstream repo
 
 jobs:
-  lint:
-    uses: ./.github/workflows/ci-lint.yml
-
   quick-build:
     runs-on: ubuntu-latest
     steps:
