@@ -31,7 +31,7 @@ env:
 
 jobs:
   lint:
-    uses: ./.github/workflows/cs-lint.yml
+    uses: ./.github/workflows/ci-lint.yml
 
   build-test:
     uses: ./.github/workflows/ci-build-test.yml
