@@ -1,4 +1,4 @@
-name: "CI"
+name: "CI: Build & Test"
 
 on:
   workflow_call:
@@ -11,7 +11,7 @@ jobs:
   lint:
     uses: ./.github/workflows/ci-lint.yml
 
-  ci-build:
+  quick-build:
     runs-on: ubuntu-latest
     steps:
       -
@@ -40,17 +40,30 @@ jobs:
           IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
           echo ::set-output name=imagename::${IMAGENAME}
       -
-        name: Build & Save
+        name: Build & Save image
         id: build
         run: |
           docker build --build-arg ${{ steps.build-args.outputs.build-arg1 }} -t ${{ steps.prep.outputs.imagename }}:test .
           docker save ${{ steps.prep.outputs.imagename }}:test > ${{ steps.prep.outputs.imagename }}-test.tar
       -
-        name: Archive docker image
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Build and export
+        id: build
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          tags: ${{ steps.prep.outputs.imagename }}:test
+          build-args: |
+            ${{ steps.build-args.outputs.build-arg1 }}
+            ${{ steps.build-args.outputs.build-arg2 }}
+          outputs: type=docker,dest=/tmp/${{ steps.prep.outputs.imagename }}-test.tar
+      - name: Archive docker image
         uses: actions/upload-artifact@v3
         with:
           name: ci-docker-image
-          path: ${{ steps.prep.outputs.imagename }}-test.tar
+          path: /tmp/${{ steps.prep.outputs.imagename }}-test.tar
           retention-days: 2
 
   snyk-scan:
@@ -73,9 +86,9 @@ jobs:
           name: ci-docker-image
       -
         name: Load docker image
-        id: build
+        id: load
         run: |
-          docker load < ${{ steps.prep.outputs.imagename }}-test.tar
+          docker load --input ${{ steps.prep.outputs.imagename }}-test.tar
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
@@ -84,3 +97,35 @@ jobs:
         with:
           image: ${{ steps.prep.outputs.imagename }}:test
           args: --file=Dockerfile --severity-threshold=high
+
+  test-image:
+    needs: [ci-build]
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.0.2
+      -
+        name: Prepare
+        id: prep
+        run: |
+          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          echo ::set-output name=imagename::${IMAGENAME}
+      -
+        name: Download docker image
+        uses: actions/download-artifact@v3
+        with:
+          name: ci-docker-image
+      -
+        name: Load docker image
+        id: load
+        run: |
+          docker load --input ${{ steps.prep.outputs.imagename }}-test.tar
+      -
+        name: Test docker image
+        id: test
+        env:
+          DEV_ENV_FILE : ${{secrets.YTTOKEN}}
+        shell: bash
+        run: |
+          test/test.sh
