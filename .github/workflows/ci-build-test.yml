@@ -1,0 +1,124 @@
+name: "CI: Build & Test"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+
+env:
+  UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"                         # Upstream repo
+
+jobs:
+  quick-build:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.0.2
+      -
+        name: Get current version
+        id: get_version
+        run: |
+          version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+          if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            version="v${version}"
+          fi
+          echo "::debug::get current version ${version}"
+          echo "::set-output name=version::${version}"
+      -
+        name: Generate Build-Args
+        id: build-args
+        run: |
+          echo ::set-output name=build-arg1::"UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}"
+          # echo ::set-output name=build-arg2::"buildarg2"
+      -
+        name: Prepare
+        id: prep
+        run: |
+          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          echo ::set-output name=imagename::${IMAGENAME}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Build and export
+        id: build
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          tags: ${{ steps.prep.outputs.imagename }}:test
+          build-args: |
+            ${{ steps.build-args.outputs.build-arg1 }}
+            ${{ steps.build-args.outputs.build-arg2 }}
+          outputs: type=docker,dest=/tmp/${{ steps.prep.outputs.imagename }}-test.tar
+      - name: Archive docker image
+        uses: actions/upload-artifact@v3
+        with:
+          name: ci-docker-image
+          path: /tmp/${{ steps.prep.outputs.imagename }}-test.tar
+          retention-days: 2
+
+  snyk-scan:
+    needs: [quick-build]
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.0.2
+      -
+        name: Prepare
+        id: prep
+        run: |
+          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          echo ::set-output name=imagename::${IMAGENAME}
+      -
+        name: Download docker image
+        uses: actions/download-artifact@v3
+        with:
+          name: ci-docker-image
+      -
+        name: Load docker image
+        id: load
+        run: |
+          docker load --input ${{ steps.prep.outputs.imagename }}-test.tar
+      -
+        name: Test the image with Snyk for high-severity vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ steps.prep.outputs.imagename }}:test
+          args: --file=Dockerfile --severity-threshold=high
+
+  test-image:
+    needs: [quick-build]
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.0.2
+      -
+        name: Prepare
+        id: prep
+        run: |
+          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          echo ::set-output name=imagename::${IMAGENAME}
+      -
+        name: Download docker image
+        uses: actions/download-artifact@v3
+        with:
+          name: ci-docker-image
+      -
+        name: Load docker image
+        id: load
+        run: |
+          docker load --input ${{ steps.prep.outputs.imagename }}-test.tar
+      -
+        name: Test docker image
+        id: test
+        env:
+          YTTOKEN : ${{secrets.YTTOKEN}}
+        shell: bash
+        run: |
+          test/test.sh
