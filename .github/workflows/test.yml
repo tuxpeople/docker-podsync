@@ -34,7 +34,7 @@ jobs:
     uses: ./.github/workflows/lint.yml
 
   ci-build:
-    uses: ./.github/workflows/ci-build_scan.yml
+    uses: ./.github/workflows/ci-build.yml
   
   scan:
     needs: [ci-build]
