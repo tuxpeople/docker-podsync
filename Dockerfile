@@ -4,6 +4,7 @@ ARG UPSTREAM_VERSION=v1
 ENV UPSTREAM_VERSION=${UPSTREAM_VERSION}
 LABEL stage=builder
 WORKDIR /workspace
+#hadolint ignore=DL4006
 RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${UPSTREAM_VERSION}.tar.gz | tar -xz --strip-components=1; go build -o /bin/podsync ./cmd/podsync
 
 FROM alpine:3.16.0
