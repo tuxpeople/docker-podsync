@@ -47,7 +47,7 @@ jobs:
       -
         name: Build and export
         id: build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v3.1.1
         with:
           context: .
           tags: ${{ steps.prep.outputs.imagename }}:test
