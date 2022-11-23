@@ -15,6 +15,8 @@ env:
 jobs:
   quick-build:
     runs-on: ubuntu-latest
+    outputs:
+      imagename: ${{ env.imagename }}
     steps:
       -
         name: Checkout
@@ -73,14 +75,14 @@ jobs:
         name: Pull docker image
         id: load
         run: |
-          docker pull ${{ env.imagename }}
+          docker pull ${{needs.quick-build.outputs.imagename}}
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.imagename }}
+          image: ${{needs.quick-build.outputs.imagename}}
           args: --file=Dockerfile --severity-threshold=high
 
   function-test:
@@ -100,13 +102,13 @@ jobs:
         name: Pull docker image
         id: load
         run: |
-          docker pull ${{ env.imagename }}
+          docker pull ${{needs.quick-build.outputs.imagename}}
       -
         name: Test docker image
         id: test
         env:
           YTTOKEN : ${{secrets.YTTOKEN}}
-          TESTIMAGE: "${{ env.imagename }}"
+          TESTIMAGE: "${{needs.quick-build.outputs.imagename}}"
         shell: bash
         run: |
           test/test.sh
