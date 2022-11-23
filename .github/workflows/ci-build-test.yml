@@ -68,7 +68,7 @@ jobs:
         name: Prepare
         id: prep
         run: |
-          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          IMAGENAME="ttl.sh/$(uuidgen | tr '[:upper:]' '[:lower:]'):3h"
           echo ::set-output name=imagename::${IMAGENAME}
       -
         name: Pull docker image
@@ -95,7 +95,7 @@ jobs:
         name: Prepare
         id: prep
         run: |
-          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          IMAGENAME="ttl.sh/$(uuidgen | tr '[:upper:]' '[:lower:]'):3h"
           echo ::set-output name=imagename::${IMAGENAME}
       -
         name: Pull docker image
