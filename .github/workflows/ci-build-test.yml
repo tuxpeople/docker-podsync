@@ -49,7 +49,7 @@ jobs:
           push: true
           tags: ${{ env.imagename }}
           build-args: |
-            UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}
+            UPSTREAM_VERSION=${{ env.build_version }}
 
   snyk-scan:
     needs: [quick-build]
