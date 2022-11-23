@@ -30,7 +30,7 @@ jobs:
             version="v${version}"
           fi
           echo "::debug::get current version ${version}"
-          echo "build_version=${version}" " >> $GITHUB_ENV
+          echo "build_version=${version}" >> $GITHUB_ENV
       -
         name: Prepare
         id: prep
