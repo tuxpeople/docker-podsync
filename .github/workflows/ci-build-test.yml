@@ -34,6 +34,7 @@ jobs:
         name: Generate Build-Args
         id: build-args
         run: |
+          echo ttl.sh/${UNIQUE_IMAGE_NAME}:3h
           echo ::set-output name=build-arg1::"UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}"
           # echo ::set-output name=build-arg2::"buildarg2"
       # -
