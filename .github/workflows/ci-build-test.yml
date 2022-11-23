@@ -11,7 +11,7 @@ on:
 
 env:
   UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"                         # Upstream repo
-  UNIQUE_IMAGE_NAME: "E063C4BD-F029-4799-BEC4-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}"
+  UNIQUE_IMAGE_NAME: "e063c4bd-f029-4799-bec4-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}"
 
 jobs:
   quick-build:
