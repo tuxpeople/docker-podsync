@@ -33,7 +33,6 @@ jobs:
         name: Generate Build-Args
         id: build-args
         run: |
-          echo ${{ steps.prep.outputs.imagename }}
           echo ::set-output name=build-arg1::"UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}"
           # echo ::set-output name=build-arg2::"buildarg2"
       -
@@ -41,7 +40,7 @@ jobs:
         id: prep
         run: |
           IMAGENAME="ttl.sh/$(uuidgen | tr '[:upper:]' '[:lower:]'):3h"
-          echo ::set-output name=imagename::${IMAGENAME}
+          echo "imagename=${IMAGENAME}" >> $GITHUB_ENV
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -52,7 +51,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.prep.outputs.imagename }}
+          tags: ${{ env.imagename }}
           build-args: |
             ${{ steps.build-args.outputs.build-arg1 }}
             ${{ steps.build-args.outputs.build-arg2 }}
@@ -74,14 +73,14 @@ jobs:
         name: Pull docker image
         id: load
         run: |
-          docker pull ${{ steps.prep.outputs.imagename }}
+          docker pull ${{ env.imagename }}
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ steps.prep.outputs.imagename }}
+          image: ${{ env.imagename }}
           args: --file=Dockerfile --severity-threshold=high
 
   function-test:
@@ -101,13 +100,13 @@ jobs:
         name: Pull docker image
         id: load
         run: |
-          docker pull ${{ steps.prep.outputs.imagename }}
+          docker pull ${{ env.imagename }}
       -
         name: Test docker image
         id: test
         env:
           YTTOKEN : ${{secrets.YTTOKEN}}
-          TESTIMAGE: "${{ steps.prep.outputs.imagename }}"
+          TESTIMAGE: "${{ env.imagename }}"
         shell: bash
         run: |
           test/test.sh
