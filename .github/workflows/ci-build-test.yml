@@ -35,8 +35,8 @@ jobs:
         name: Generate Build-Args
         id: build-args
         run: |
-          echo ::set-output name=build-arg1::"UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}"
-          # echo ::set-output name=build-arg2::"buildarg2"
+          echo "build-arg1=UPSTREAM_VERSION\=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
+          # echo "build-arg2=buildarg2" >> $GITHUB_ENV
       -
         name: Prepare
         id: prep
@@ -55,8 +55,8 @@ jobs:
           push: true
           tags: ${{ env.imagename }}
           build-args: |
-            ${{ steps.build-args.outputs.build-arg1 }}
-            ${{ steps.build-args.outputs.build-arg2 }}
+            ${{ env.build-arg1 }}
+            ${{ env.build-arg2 }}
 
   snyk-scan:
     needs: [quick-build]
@@ -65,12 +65,6 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3.0.2
-      -
-        name: Prepare
-        id: prep
-        run: |
-          IMAGENAME="ttl.sh/$(uuidgen | tr '[:upper:]' '[:lower:]'):3h"
-          echo ::set-output name=imagename::${IMAGENAME}
       -
         name: Pull docker image
         id: load
@@ -92,12 +86,6 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3.0.2
-      -
-        name: Prepare
-        id: prep
-        run: |
-          IMAGENAME="ttl.sh/$(uuidgen | tr '[:upper:]' '[:lower:]'):3h"
-          echo ::set-output name=imagename::${IMAGENAME}
       -
         name: Pull docker image
         id: load
