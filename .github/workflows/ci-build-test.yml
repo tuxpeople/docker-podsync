@@ -30,12 +30,7 @@ jobs:
             version="v${version}"
           fi
           echo "::debug::get current version ${version}"
-          echo "::set-output name=version::${version}"
-      -
-        name: Generate Build-Args
-        id: build-args
-        run: |
-          echo "UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
+          echo "build_version=${version}" " >> $GITHUB_ENV
       -
         name: Prepare
         id: prep
@@ -54,7 +49,7 @@ jobs:
           push: true
           tags: ${{ env.imagename }}
           build-args: |
-            UPSTREAM_VERSION=${{ env.UPSTREAM_VERSION }}
+            UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}
 
   snyk-scan:
     needs: [quick-build]
