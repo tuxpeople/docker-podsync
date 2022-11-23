@@ -25,7 +25,7 @@ youtube = "$YTTOKEN"
 self_update = true
 EOF
 
-docker run --name=test -p 8080:8080 -d -v /tmp/config.toml:/app/config.toml:ro --health-cmd='wget localhost:8080/podsync.opml -O - > /dev/null' --health-interval=10s podsync:test
+docker run --name=test -p 8080:8080 -d -v /tmp/config.toml:/app/config.toml:ro --health-cmd='wget localhost:8080/podsync.opml -O - > /dev/null' --health-interval=10s ${TESTIMAGE}
 
 sleep 5
 
