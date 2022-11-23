@@ -35,8 +35,7 @@ jobs:
         name: Generate Build-Args
         id: build-args
         run: |
-          echo "build-arg1=UPSTREAM_VERSION\=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
-          # echo "build-arg2=buildarg2" >> $GITHUB_ENV
+          echo "UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
       -
         name: Prepare
         id: prep
@@ -55,8 +54,7 @@ jobs:
           push: true
           tags: ${{ env.imagename }}
           build-args: |
-            ${{ env.build-arg1 }}
-            ${{ env.build-arg2 }}
+            UPSTREAM_VERSION=${{ env.UPSTREAM_VERSION }}
 
   snyk-scan:
     needs: [quick-build]
