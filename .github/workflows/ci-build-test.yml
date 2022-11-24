@@ -2,6 +2,10 @@ name: "CI: Build & Test"
 
 on:
   workflow_call:
+    inputs:
+      build_version:
+        required: true
+        type: string
     secrets:
       SNYK_TOKEN:
         required: true
@@ -22,16 +26,11 @@ jobs:
         name: Checkout
         uses: actions/checkout@v3.1.0
       -
-      #   name: Get current version
-      #   id: get_version
-      #   run: |
-      #     version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
-      #     if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-      #       version="v${version}"
-      #     fi
-      #     echo "::debug::get current version ${version}"
-      #     echo "build_version=${version}" >> $GITHUB_ENV
-      # -
+        name: Get current version
+        id: get_version
+        run: |
+          echo "build_version=${{ inputs.build_version }}" >> $GITHUB_ENV
+      -
         name: Prepare
         id: prep
         run: |
