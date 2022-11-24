@@ -26,11 +26,6 @@ jobs:
         name: Checkout
         uses: actions/checkout@v3.1.0
       -
-        name: Get current version
-        id: get_version
-        run: |
-          echo "build_version=${{ inputs.build_version }}" >> $GITHUB_ENV
-      -
         name: Prepare
         id: prep
         run: |
@@ -48,7 +43,7 @@ jobs:
           push: true
           tags: ${{ env.imagename }}
           build-args: |
-            UPSTREAM_VERSION=${{ env.build_version }}
+            UPSTREAM_VERSION=${{ inputs.build_version }}
 
   snyk-scan:
     needs: [quick-build]
