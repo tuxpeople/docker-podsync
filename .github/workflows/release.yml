@@ -164,8 +164,8 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          image: ${{ env.prep_image }}:latest
-          args: --file=Dockerfile --project-name=${{ env.prep_image }}:latest
+          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_image }}:latest
+          args: --file=Dockerfile --project-name=ghcr.io/${{ github.repository_owner }}/${{ env.prep_image }}:latest
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
@@ -173,7 +173,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.prep_image }}:latest
+          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_image }}:latest
           args: --file=Dockerfile --severity-threshold=high
       -
         name: Output a SARIF file from Snyk
@@ -184,7 +184,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           sarif: true
-          image: ${{ env.prep_image }}:latest
+          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_image }}:latest
           args: --file=Dockerfile
       -
         name: Upload SARIF artifact
