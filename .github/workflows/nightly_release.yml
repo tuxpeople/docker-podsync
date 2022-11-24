@@ -1,0 +1,221 @@
+name: "Build & Release"
+
+# This worflow needs those secrets:
+#
+# DOCKERPASSWORD = Docker Hub token
+
+on:
+  schedule:
+    - cron: '3 3 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types:
+      - 'new-version'
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+
+env:
+  PLATFORMS: "linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64"     # Build for which platforms
+  DOCKER_USER: "tdeutsch"                                            # Which user to use to login to DockerHub
+  UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"                         # Upstream repo
+
+#####
+# To rebuild someone else's repo, do this:
+#
+# - New env    REPOSITORY: "githubuser/githubrepo"
+# - Add this to the checkout:
+#        with:
+#          repository: ${{ env.REPOSITORY }}
+# - One may also need to disable hadolint, due to the quality of others Dockerfile
+#####
+
+jobs:
+  lint:
+    uses: ./.github/workflows/ci-lint.yml
+
+  build-test:
+    uses: ./.github/workflows/ci-build-test.yml
+    secrets:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      YTTOKEN: ${{ secrets.YTTOKEN }}
+
+  build_and_release:
+    needs: [build-test, lint]
+    runs-on: ubuntu-latest
+    #if: !contains(github.event.head_commit.message, '[skip ci]')
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.1.0
+      -
+        name: Prepare
+        id: prep
+        run: |
+          IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
+          VERSION="nightly"
+
+          for IMAGEPREFIX in "ghcr.io/${{ github.repository_owner }}" "docker.io/${{ env.DOCKER_USER }}"; do
+            IMAGE="${IMAGEPREFIX}/${IMAGENAME}"
+            TAGS="${IMAGE}:${VERSION}"
+          done
+
+          echo "prep_tags=${TAGS}" >> $GITHUB_ENV
+          echo "prep_imagename=${IMAGENAME}" >> $GITHUB_ENV
+          echo "prep_image=${IMAGE}" >> $GITHUB_ENV
+          echo "prep_version=${VERSION}" >> $GITHUB_ENV
+          echo "prep_upstream_version=${UPSTREAM_VERSION}" >> $GITHUB_ENV
+          echo "prep_created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+      -
+        name: Hadolint
+        uses: brpaz/hadolint-action@v1.5.0
+        with: 
+          dockerfile: Dockerfile
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2.1.0
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ secrets.DOCKERPASSWORD }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ env.PLATFORMS }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.prep_tags }}
+          labels: |
+            org.opencontainers.image.title=${{ env.prep_imagename }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.version=${{ env.prep_version }}
+            org.opencontainers.image.created=${{ env.prep_created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+
+  security:
+    needs: [build_and_release]
+    runs-on: ubuntu-latest
+    #if: !contains(github.event.head_commit.message, '[skip ci]')
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.1.0
+      -
+        name: Monitor published image for vulnerabilities with Snyk
+        uses: snyk/actions/docker@master
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          image: ${{ env.prep_image }}:nightly
+          args: --file=Dockerfile --project-name=${{ env.prep_image }}:nightly
+      -
+        name: Test the image with Snyk for high-severity vulnerabilities
+        uses: snyk/actions/docker@master
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.prep_image }}:nightly
+          args: --file=Dockerfile --severity-threshold=high
+      -
+        name: Output a SARIF file from Snyk
+        continue-on-error: true
+        uses: snyk/actions/docker@master
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          sarif: true
+          image: ${{ env.prep_image }}:nightly
+          args: --file=Dockerfile
+      -
+        name: Upload SARIF artifact
+        uses: actions/upload-artifact@v3
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          name: SARIF
+          path: snyk.sarif
+      -
+        name: Upload the SARIF file to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          sarif_file: snyk.sarif
+      # -
+      #   name: Copy to Docker Hub
+      #   id: copy_images
+      #   if: ${{ github.event_name != 'pull_request' }}
+      #   run: |
+      #     for i in $(echo ${{ env.prep_tags }} | sed "s/,/ /g")
+      #     do
+      #         GHTAG=$(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
+      #         skopeo copy --all --src-creds=${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }} --dest-creds=${{ env.DOCKER_USER }}:${{ secrets.DOCKERPASSWORD }} docker://${i} docker://${GHTAG}
+      #     done
+      -
+        name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@1e95c1de343b5b0c23352d6417ee3e48d5bcd422
+        with:
+          cosign-release: 'v1.4.0'
+      -
+        name: Sign the published Docker image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: |
+          echo "$KEY" > cosign.key
+          for i in $(echo ${{ env.prep_tags }} | sed "s/,/ /g")
+          do
+            cosign sign --key cosign.key ${i}
+            cosign sign --key cosign.key $(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
+          done
+          rm -f cosign.key
+
+  cleanup:
+    needs: [security]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}  
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.1.0
+      -
+        name: Dump public key
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: |
+          echo "$KEY" > $GITHUB_WORKSPACE/cosign-signing-key.pub
+          sha256sum $GITHUB_WORKSPACE/cosign-signing-key.pub > $GITHUB_WORKSPACE/cosign-signing-key.pub.sha256
+          sha512sum $GITHUB_WORKSPACE/cosign-signing-key.pub > $GITHUB_WORKSPACE/cosign-signing-key.pub.sha512
+      -
+        uses: stefanzweifel/git-auto-commit-action@v4
