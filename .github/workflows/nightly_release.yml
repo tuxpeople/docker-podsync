@@ -34,12 +34,7 @@ jobs:
         name: Get current version
         id: get_version
         run: |
-          VERSION=""
-          version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
-          if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            VERSION="v${version}"
-          fi
-          echo "::debug::get current version ${version}"
+          VERSION="nightly"
           echo "build_version=${version}" >> $GITHUB_ENV
 
   lint:
@@ -66,7 +61,7 @@ jobs:
         id: prep
         run: |
           IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
-          VERSION="nightly"
+          VERSION=${{ env.build_version }}
 
           for IMAGEPREFIX in "ghcr.io/${{ github.repository_owner }}" "docker.io/${{ env.DOCKER_USER }}"; do
             IMAGE="${IMAGEPREFIX}/${IMAGENAME}"
