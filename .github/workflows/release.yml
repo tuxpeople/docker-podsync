@@ -70,7 +70,7 @@ jobs:
         name: Prepare
         id: prep
         run: |
-          UPSTREAM_VERSION=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+          UPSTREAM_VERSION=${{ env.build_version }}
           if [[ $UPSTREAM_VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             UPSTREAM_VERSION="v${UPSTREAM_VERSION}"
           fi
