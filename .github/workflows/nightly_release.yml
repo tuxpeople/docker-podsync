@@ -37,7 +37,7 @@ jobs:
         id: get_version
         run: |
           VERSION="nightly"
-          echo "build_version=${version}" >> $GITHUB_ENV
+          echo "build_version=${VERSION}" >> $GITHUB_ENV
 
   lint:
     uses: ./.github/workflows/ci-lint.yml
