@@ -200,7 +200,7 @@ jobs:
         name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
         env:
-          COSIGN_EXPERIMENTAL: "true"
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
