@@ -28,6 +28,8 @@ jobs:
   get_version:
     runs-on: ubuntu-latest
     #if: !contains(github.event.head_commit.message, '[skip ci]')
+    outputs:
+      build_version: ${{ env.build_version }}
 
     steps:
       -
@@ -47,7 +49,7 @@ jobs:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       YTTOKEN: ${{ secrets.YTTOKEN }}
     with:
-      build_version: ${{ env.build_version }}
+      build_version: ${{needs.get_version.outputs.build_version}}
 
   build_and_release:
     needs: [build-test, lint]
