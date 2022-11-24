@@ -157,16 +157,6 @@ jobs:
           password: ${{ secrets.DOCKERPASSWORD }}
           repository: "${{ env.DOCKER_USER }}/${{ env.prep_imagename }}"
           short-description: ${{ github.event.repository.description }}
-
-  security:
-    needs: [build_and_release]
-    runs-on: ubuntu-latest
-    #if: !contains(github.event.head_commit.message, '[skip ci]')
-
-    steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v3.1.0
       -
         name: Monitor published image for vulnerabilities with Snyk
         uses: snyk/actions/docker@master
@@ -243,7 +233,7 @@ jobs:
           rm -f cosign.key
 
   cleanup:
-    needs: [security]
+    needs: [build_and_release]
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}  
 

@@ -198,7 +198,7 @@ jobs:
           rm -f cosign.key
 
   cleanup:
-    needs: [security]
+    needs: [build_and_release]
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}  
 
