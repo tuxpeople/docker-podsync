@@ -122,16 +122,6 @@ jobs:
             org.opencontainers.image.created=${{ env.prep_created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-
-  security:
-    needs: [build_and_release]
-    runs-on: ubuntu-latest
-    #if: !contains(github.event.head_commit.message, '[skip ci]')
-
-    steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v3.1.0
       -
         name: Monitor published image for vulnerabilities with Snyk
         uses: snyk/actions/docker@master
@@ -204,7 +194,6 @@ jobs:
           for i in $(echo ${{ env.prep_tags }} | sed "s/,/ /g")
           do
             cosign sign --key cosign.key ${i}
-            cosign sign --key cosign.key $(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
           done
           rm -f cosign.key
 
