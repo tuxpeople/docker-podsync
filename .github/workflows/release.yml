@@ -212,3 +212,24 @@ jobs:
             cosign sign --key cosign.key $(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
           done
           rm -f cosign.key
+
+  cleanup:
+    needs: [release]
+    runs-on: ubuntu-latest
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.1.0
+      -
+        name: Dump public key
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: |
+          echo "$KEY" > $GITHUB_WORKSPACE/cosign-signing-key.pub
+      -
+        uses: stefanzweifel/git-auto-commit-action@v4
