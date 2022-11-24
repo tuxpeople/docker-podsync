@@ -43,9 +43,11 @@ jobs:
         run: |
           VERSION=""
           VERSION=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+          echo ${VERSION}
           if [[ $VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             VERSION="v${VERSION}"
           fi
+          echo ${VERSION}
           echo "::debug::get current version ${VERSION}"
           echo "build_version=${VERSION}" >> $GITHUB_ENV
 
