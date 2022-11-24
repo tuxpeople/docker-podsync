@@ -56,6 +56,8 @@ jobs:
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       YTTOKEN: ${{ secrets.YTTOKEN }}
+    environment:
+      build_version=${{ env.build_version }}
 
   build_and_release:
     needs: [build-test, lint]
