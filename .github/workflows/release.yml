@@ -131,46 +131,46 @@ jobs:
       -
         name: Monitor published image for vulnerabilities with Snyk
         uses: snyk/actions/docker@master
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
           image: ${{ steps.prep.outputs.image }}:latest
           args: --file=Dockerfile --project-name=${{ steps.prep.outputs.image }}:latest
-        if: github.event_name != 'pull_request'
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ steps.prep.outputs.image }}:latest
           args: --file=Dockerfile --severity-threshold=high
-        if: github.event_name != 'pull_request'
       -
         name: Output a SARIF file from Snyk
         continue-on-error: true
         uses: snyk/actions/docker@master
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           sarif: true
           image: ${{ steps.prep.outputs.image }}:latest
           args: --file=Dockerfile
-        if: github.event_name != 'pull_request'
       -
         name: Upload SARIF artifact
         uses: actions/upload-artifact@v3
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           name: SARIF
           path: snyk.sarif
-        if: github.event_name != 'pull_request'
       -
         name: Upload the SARIF file to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v2
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           sarif_file: snyk.sarif
-        if: github.event_name != 'pull_request'
       -
         name: Copy to Docker Hub
         id: copy_images
