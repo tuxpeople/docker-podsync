@@ -209,5 +209,6 @@ jobs:
           for i in $(echo ${{ steps.prep.outputs.tags }} | sed "s/,/ /g")
           do
             cosign sign --key cosign.key ${i}
+            cosign sign --key cosign.key $(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
           done
           rm -f cosign.key
