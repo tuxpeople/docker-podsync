@@ -30,10 +30,29 @@ env:
 #####
 
 jobs:
+  get_version:
+    needs: [build-test, lint]
+    runs-on: ubuntu-latest
+    #if: !contains(github.event.head_commit.message, '[skip ci]')
+
+    steps:
+      -
+        name: Get current version
+        id: get_version
+        run: |
+          VERSION=""
+          version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+          if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            VERSION="v${version}"
+          fi
+          echo "::debug::get current version ${version}"
+          echo "build_version=${version}" >> $GITHUB_ENV
+
   lint:
     uses: ./.github/workflows/ci-lint.yml
 
   build-test:
+    needs: [get_version]
     uses: ./.github/workflows/ci-build-test.yml
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -48,17 +67,6 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3.1.0
-      -
-        name: Get current version
-        id: get_version
-        run: |
-          VERSION=""
-          version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
-          if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            VERSION="v${version}"
-          fi
-          echo "::debug::get current version ${version}"
-          echo "build_version=${version}" >> $GITHUB_ENV
       -
         name: Prepare
         id: prep
