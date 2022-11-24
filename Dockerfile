@@ -1,6 +1,6 @@
 FROM golang:alpine AS builder
 # UPSTREAM_VERSION can be changed, by passing `--build-arg UPSTREAM_VERSION=<new version>` during docker build
-ARG UPSTREAM_VERSION=v1
+ARG UPSTREAM_VERSION=master
 ENV UPSTREAM_VERSION=${UPSTREAM_VERSION}
 LABEL stage=builder
 WORKDIR /workspace
