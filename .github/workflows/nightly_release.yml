@@ -130,8 +130,8 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_image }}:${{ env.prep_version }}
-          args: --file=Dockerfile --project-name=ghcr.io/${{ github.repository_owner }}/${{ env.prep_image }}:${{ env.prep_version }}
+          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_imagename }}:${{ env.prep_version }}
+          args: --file=Dockerfile --project-name=ghcr.io/${{ github.repository_owner }}/${{ env.prep_imagename }}:${{ env.prep_version }}
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
@@ -139,7 +139,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_image }}:${{ env.prep_version }}
+          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_imagename }}:${{ env.prep_version }}
           args: --file=Dockerfile --severity-threshold=high
       -
         name: Output a SARIF file from Snyk
@@ -150,7 +150,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           sarif: true
-          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_image }}:${{ env.prep_version }}
+          image: ghcr.io/${{ github.repository_owner }}/${{ env.prep_imagename }}:${{ env.prep_version }}
           args: --file=Dockerfile
       -
         name: Upload SARIF artifact
