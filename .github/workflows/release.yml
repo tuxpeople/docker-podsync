@@ -40,12 +40,12 @@ jobs:
         id: get_version
         run: |
           VERSION=""
-          version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
-          if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            VERSION="v${version}"
+          VERSION=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+          if [[ $VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            VERSION="v${VERSION}"
           fi
-          echo "::debug::get current version ${version}"
-          echo "build_version=${version}" >> $GITHUB_ENV
+          echo "::debug::get current version ${VERSION}"
+          echo "build_version=${VERSION}" >> $GITHUB_ENV
 
   lint:
     uses: ./.github/workflows/ci-lint.yml
