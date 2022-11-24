@@ -39,7 +39,7 @@ jobs:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       YTTOKEN: ${{ secrets.YTTOKEN }}
 
-  release:
+  build_and_release:
     needs: [build-test, lint]
     runs-on: ubuntu-latest
     #if: !contains(github.event.head_commit.message, '[skip ci]')
@@ -52,42 +52,45 @@ jobs:
         name: Get current version
         id: get_version
         run: |
+          VERSION=""
           version=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
           if [[ $version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            version="v${version}"
+            VERSION="v${version}"
           fi
           echo "::debug::get current version ${version}"
-          echo "::set-output name=version::${version}"
-      -
-        name: Generate Build-Args
-        id: build-args
-        run: |
-          echo ::set-output name=build-arg1::"UPSTREAM_VERSION=${{ steps.get_version.outputs.version }}"
-          # echo ::set-output name=build-arg2::"buildarg2"
+          echo "build_version=${version}" >> $GITHUB_ENV
       -
         name: Prepare
         id: prep
         run: |
+          UPSTREAM_VERSION=$(curl --silent https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags | jq -r '.[-1].ref' | awk -F/ '{print $NF}')
+          if [[ $UPSTREAM_VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            UPSTREAM_VERSION="v${UPSTREAM_VERSION}"
+          fi
+
           IMAGENAME=$(echo ${{ github.repository }} | sed 's/${{ github.repository_owner }}\/docker-//g')
-          IMAGEPREFIX="ghcr.io/${{ github.repository_owner }}"
-          IMAGE="${IMAGEPREFIX}/${IMAGENAME}"
-          VERSION=${{ steps.get_version.outputs.version }}
+          VERSION=$UPSTREAM_VERSION
 
           if [[ $GITHUB_REF == refs/pull/* ]]; then
             VERSION=pr${{ github.event.number }}-${VERSION}
           fi
 
-          TAGS="${IMAGE}:${VERSION}"
-          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            MINOR=${VERSION%.*}
-            MAJOR=${MINOR%.*}
-            TAGS="$TAGS,${IMAGE}:${MINOR},${IMAGE}:${MAJOR},${IMAGE}:latest"
-          fi
-          echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=imagename::${IMAGENAME}
-          echo ::set-output name=image::${IMAGE}
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          for IMAGEPREFIX in "ghcr.io/${{ github.repository_owner }}" "docker.io/${{ env.DOCKER_USER }}"; do
+            IMAGE="${IMAGEPREFIX}/${IMAGENAME}"
+            TAGS="${IMAGE}:${VERSION}"
+            if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+              MINOR=${VERSION%.*}
+              MAJOR=${MINOR%.*}
+              TAGS="$TAGS,${IMAGE}:${MINOR},${IMAGE}:${MAJOR},${IMAGE}:latest"
+            fi
+          done
+
+          echo "prep_tags=${TAGS}" >> $GITHUB_ENV
+          echo "prep_imagename=${IMAGENAME}" >> $GITHUB_ENV
+          echo "prep_image=${IMAGE}" >> $GITHUB_ENV
+          echo "prep_version=${VERSION}" >> $GITHUB_ENV
+          echo "prep_upstream_version=${UPSTREAM_VERSION}" >> $GITHUB_ENV
+          echo "prep_created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
       -
         name: Hadolint
         uses: brpaz/hadolint-action@v1.5.0
@@ -122,19 +125,37 @@ jobs:
           file: ./Dockerfile
           platforms: ${{ env.PLATFORMS }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.prep.outputs.tags }}
+          tags: ${{ env.prep_tags }}
           build-args: |
-            ${{ steps.build-args.outputs.build-arg1 }}
-            ${{ steps.build-args.outputs.build-arg2 }}
+            UPSTREAM_VERSION=${{ env.prep_upstream_version }}
           labels: |
-            org.opencontainers.image.title=${{ steps.prep.outputs.imagename }}
+            org.opencontainers.image.title=${{ env.prep_imagename }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
             org.opencontainers.image.url=${{ github.event.repository.html_url }}
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.version=${{ steps.prep.outputs.version }}
-            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.version=${{ env.prep_version }}
+            org.opencontainers.image.created=${{ env.prep_created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+      -
+        name: Update Docker Hub Description
+        uses: peter-evans/dockerhub-description@v3.1.2
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ secrets.DOCKERPASSWORD }}
+          repository: "${{ env.DOCKER_USER }}/${{ env.prep_imagename }}"
+          short-description: ${{ github.event.repository.description }}
+
+  security:
+    needs: [build_and_release]
+    runs-on: ubuntu-latest
+    #if: !contains(github.event.head_commit.message, '[skip ci]')
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3.1.0
       -
         name: Monitor published image for vulnerabilities with Snyk
         uses: snyk/actions/docker@master
@@ -143,8 +164,8 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          image: ${{ steps.prep.outputs.image }}:latest
-          args: --file=Dockerfile --project-name=${{ steps.prep.outputs.image }}:latest
+          image: ${{ env.prep_image }}:latest
+          args: --file=Dockerfile --project-name=${{ env.prep_image }}:latest
       -
         name: Test the image with Snyk for high-severity vulnerabilities
         uses: snyk/actions/docker@master
@@ -152,7 +173,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ steps.prep.outputs.image }}:latest
+          image: ${{ env.prep_image }}:latest
           args: --file=Dockerfile --severity-threshold=high
       -
         name: Output a SARIF file from Snyk
@@ -163,7 +184,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           sarif: true
-          image: ${{ steps.prep.outputs.image }}:latest
+          image: ${{ env.prep_image }}:latest
           args: --file=Dockerfile
       -
         name: Upload SARIF artifact
@@ -178,25 +199,16 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         with:
           sarif_file: snyk.sarif
-      -
-        name: Copy to Docker Hub
-        id: copy_images
-        if: ${{ github.event_name != 'pull_request' }}
-        run: |
-          for i in $(echo ${{ steps.prep.outputs.tags }} | sed "s/,/ /g")
-          do
-              GHTAG=$(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
-              skopeo copy --all --src-creds=${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }} --dest-creds=${{ env.DOCKER_USER }}:${{ secrets.DOCKERPASSWORD }} docker://${i} docker://${GHTAG}
-          done
-      -
-        name: Docker Hub Description
-        uses: peter-evans/dockerhub-description@v3.1.2
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          username: ${{ env.DOCKER_USER }}
-          password: ${{ secrets.DOCKERPASSWORD }}
-          repository: "${{ env.DOCKER_USER }}/${{ steps.prep.outputs.imagename }}"
-          short-description: ${{ github.event.repository.description }}
+      # -
+      #   name: Copy to Docker Hub
+      #   id: copy_images
+      #   if: ${{ github.event_name != 'pull_request' }}
+      #   run: |
+      #     for i in $(echo ${{ env.prep_tags }} | sed "s/,/ /g")
+      #     do
+      #         GHTAG=$(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
+      #         skopeo copy --all --src-creds=${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }} --dest-creds=${{ env.DOCKER_USER }}:${{ secrets.DOCKERPASSWORD }} docker://${i} docker://${GHTAG}
+      #     done
       -
         name: Install cosign
         if: github.event_name != 'pull_request'
@@ -213,7 +225,7 @@ jobs:
         # against the sigstore community Fulcio instance.
         run: |
           echo "$KEY" > cosign.key
-          for i in $(echo ${{ steps.prep.outputs.tags }} | sed "s/,/ /g")
+          for i in $(echo ${{ env.prep_tags }} | sed "s/,/ /g")
           do
             cosign sign --key cosign.key ${i}
             cosign sign --key cosign.key $(echo $i | sed "s/ghcr.io/docker.io/g" | sed "s/${{ github.repository_owner }}/${{ env.DOCKER_USER }}/g")
@@ -221,7 +233,7 @@ jobs:
           rm -f cosign.key
 
   cleanup:
-    needs: [release]
+    needs: [security]
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}  
 
