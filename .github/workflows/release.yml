@@ -74,7 +74,7 @@ jobs:
         name: Prepare
         id: prep
         run: |
-          UPSTREAM_VERSION=${{ env.build_version }}
+          UPSTREAM_VERSION=${{needs.get_version.outputs.build_version}}
           if [[ $UPSTREAM_VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             UPSTREAM_VERSION="v${UPSTREAM_VERSION}"
           fi
