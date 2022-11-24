@@ -239,7 +239,7 @@ jobs:
         # against the sigstore community Fulcio instance.
         run: |
           echo "$KEY" > $GITHUB_WORKSPACE/cosign-signing-key.pub
-          sha256sum $GITHUB_WORKSPACE/cosign-signing-key.pub.sha256
-          sha512sum $GITHUB_WORKSPACE/cosign-signing-key.pub.sha512
+          sha256sum $GITHUB_WORKSPACE/cosign-signing-key.pub > $GITHUB_WORKSPACE/cosign-signing-key.pub.sha256
+          sha512sum $GITHUB_WORKSPACE/cosign-signing-key.pub > $GITHUB_WORKSPACE/cosign-signing-key.pub.sha512
       -
         uses: stefanzweifel/git-auto-commit-action@v4
