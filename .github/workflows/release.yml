@@ -90,7 +90,7 @@ jobs:
 
           for IMAGEPREFIX in "ghcr.io/${{ github.repository_owner }}" "docker.io/${{ env.DOCKER_USER }}"; do
             IMAGE="${IMAGEPREFIX}/${IMAGENAME}"
-            TAGS="${IMAGE}:${VERSION}"
+            TAGS="${TAGS},${IMAGE}:${VERSION}"
             if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
               MINOR=${VERSION%.*}
               MAJOR=${MINOR%.*}
