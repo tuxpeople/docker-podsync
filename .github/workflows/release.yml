@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     #if: !contains(github.event.head_commit.message, '[skip ci]')
     outputs:
-      build_version: ${{ env.build_version }}
+      build_version: ${{ steps.get_version.outputs.build_version }}
 
     steps:
       -
@@ -48,8 +48,7 @@ jobs:
             VERSION="v${VERSION}"
           fi
           echo ${VERSION}
-          echo "::debug::get current version ${VERSION}"
-          echo "build_version=${VERSION}" >> $GITHUB_ENV
+          echo "build_version=${VERSION}" >> $GITHUB_OUTPUT
 
   lint:
     uses: ./.github/workflows/ci-lint.yml
