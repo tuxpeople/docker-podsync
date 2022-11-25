@@ -1,0 +1,25 @@
+name: cleanup untagged images
+
+on:
+  schedule:
+    - cron: "5 4 4 */2 *"
+    # At 04:05 on day-of-month 4 in every 2nd month.”
+  workflow_dispatch:
+
+env:
+  UPSTREAM_GITHUB_REPOSITORY: "mxpv/podsync"          # Upstream repo
+
+jobs:
+  check_release:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Delete all containers from repository without tags
+      uses: Chizkiyahu/delete-untagged-ghcr-action@v2
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
+        repository_owner: ${{ github.repository_owner }}
+        repository: ${{ github.repository }}
+        untagged_only: true
+        owner_type: user
