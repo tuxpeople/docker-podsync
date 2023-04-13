@@ -70,7 +70,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.5.2
       -
         name: Prepare
         id: prep
@@ -243,7 +243,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.5.2
       -
         name: Dump public key
         if: ${{ github.event_name != 'pull_request' }}
