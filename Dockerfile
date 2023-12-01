@@ -1,4 +1,4 @@
-FROM golang:alpine@sha256:110b07af87238fbdc5f1df52b00927cf58ce3de358eeeb1854f10a8b5e5e1411 AS builder
+FROM golang:alpine@sha256:b9bc5b14002cb97292c8d8e3b55a77a019d17fffaded2d0382f7129852a807b0 AS builder
 # UPSTREAM_VERSION can be changed, by passing `--build-arg UPSTREAM_VERSION=<new version>` during docker build
 ARG UPSTREAM_VERSION=master
 ENV UPSTREAM_VERSION=${UPSTREAM_VERSION}
