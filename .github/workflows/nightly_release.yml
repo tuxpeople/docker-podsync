@@ -161,7 +161,7 @@ jobs:
           path: snyk.sarif
       -
         name: Upload the SARIF file to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@4759df8df70c5ebe7042c3029bbace20eee13edd # v2
+        uses: github/codeql-action/upload-sarif@0b21cf2492b6b02c465a3e5d7c473717ad7721ba # v2
         if: ${{ github.event_name != 'pull_request' }}
         with:
           sarif_file: snyk.sarif
