@@ -106,7 +106,7 @@ jobs:
       -
         name: Build and push
         id: docker_build
-        uses: docker/build-push-action@4f7cdeb0f05278b464e71357394bf2c61f94138e # v6
+        uses: docker/build-push-action@16ebe778df0e7752d2cfcbd924afdbbd89c1a755 # v6
         with:
           context: .
           file: ./Dockerfile
@@ -185,7 +185,7 @@ jobs:
       -
         name: Install cosign
         if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@cc23fe1cf04164ea4c208611cf647a013c6f8cc5
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382
         with:
           cosign-release: 'v1.4.0'
       -
