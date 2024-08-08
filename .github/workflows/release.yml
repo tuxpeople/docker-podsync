@@ -204,6 +204,13 @@ jobs:
         with:
           sarif_file: snyk.sarif
       # -
+      #   name: Install latest Skopeo # GitHub's ubuntu 22 uses Skopeo 1.4 but we need newer to fix the "unsupported MIME type for compression: application/vnd.in-toto+json" error
+      #   run: |
+      #     echo 'deb http://download.opensuse.org/repositories/home:/alvistack/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:alvistack.list
+      #     curl -fsSL https://download.opensuse.org/repositories/home:alvistack/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_alvistack.gpg > /dev/null
+      #     sudo apt update
+      #     sudo apt -o Dpkg::Options::="--force-overwrite" install skopeo
+      # -
       #   name: Copy to Docker Hub
       #   id: copy_images
       #   if: ${{ github.event_name != 'pull_request' }}
