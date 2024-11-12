@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Delete all containers from repository without tags
-      uses: Chizkiyahu/delete-untagged-ghcr-action@e8c780ca2d589797e657691fc16bffe066714890 # v4
+      uses: Chizkiyahu/delete-untagged-ghcr-action@1c77a06b7f80ad4beb82b85919003831d47277d1 # v5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         repository_owner: ${{ github.repository_owner }}
