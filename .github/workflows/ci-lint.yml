@@ -21,7 +21,7 @@ jobs:
       -
         name: Hadolint for PR
         if: github.event_name == 'pull_request'
-        uses: reviewdog/action-hadolint@73fec8b28091e5082c19df69815dd749d97b882a # v1.46.0
+        uses: reviewdog/action-hadolint@ef609af16122e20a1588bda22a3086cec4e05024 # v1.47.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-review
