@@ -7,7 +7,7 @@ WORKDIR /workspace
 #hadolint ignore=DL4006
 RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${UPSTREAM_VERSION}.tar.gz | tar -xz --strip-components=1; go build -o /bin/podsync ./cmd/podsync
 
-FROM alpine:3.21.0@sha256:21dc6063fd678b478f57c0e13f47560d0ea4eeba26dfc947b2a4f81f686b9f45
+FROM alpine:3.21.1@sha256:b97e2a89d0b9e4011bb88c02ddf01c544b8c781acf1f4d559e7c8f12f1047ac3
 WORKDIR /app/
 # hadolint ignore=DL3018,DL3017
 RUN apk --no-cache upgrade && \
