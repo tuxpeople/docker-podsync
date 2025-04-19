@@ -264,4 +264,4 @@ jobs:
           sha256sum $GITHUB_WORKSPACE/cosign-signing-key.pub > $GITHUB_WORKSPACE/cosign-signing-key.pub.sha256
           sha512sum $GITHUB_WORKSPACE/cosign-signing-key.pub > $GITHUB_WORKSPACE/cosign-signing-key.pub.sha512
       -
-        uses: stefanzweifel/git-auto-commit-action@e348103e9026cc0eee72ae06630dbe30c8bf7a79 # v5
+        uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
