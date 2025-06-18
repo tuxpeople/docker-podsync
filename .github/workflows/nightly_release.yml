@@ -1,6 +1,6 @@
 name: "Build & Release Nightly"
 
-# This worflow needs those secrets:
+# This workflow needs those secrets:
 #
 # DOCKERPASSWORD = Docker Hub token
 
