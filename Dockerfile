@@ -5,7 +5,11 @@ ENV UPSTREAM_VERSION=${UPSTREAM_VERSION}
 LABEL stage=builder
 WORKDIR /workspace
 #hadolint ignore=DL4006
-RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${UPSTREAM_VERSION}.tar.gz | tar -xz --strip-components=1; go build -o /bin/podsync ./cmd/podsync
+RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${UPSTREAM_VERSION}.tar.gz \
+    | tar -xz --strip-components=1 \
+    && go get golang.org/x/net@v0.38.0 \
+    && go build -o /bin/podsync ./cmd/podsync
+# remove `go get golang.org/x/net@v0.38.0` once https://github.com/mxpv/podsync/pull/692 is merged
 
 FROM alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715
 WORKDIR /app/
