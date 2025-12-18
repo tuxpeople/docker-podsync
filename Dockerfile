@@ -11,7 +11,7 @@ RUN wget -nv -O - https://github.com/mxpv/podsync/archive/${UPSTREAM_VERSION}.ta
     && go build -o /bin/podsync ./cmd/podsync
 # remove `go get golang.org/x/net@v0.38.0` once https://github.com/mxpv/podsync/pull/692 is merged
 
-FROM alpine:3.23.0@sha256:51183f2cfa6320055da30872f211093f9ff1d3cf06f39a0bdb212314c5dc7375
+FROM alpine:3.23.2@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62
 WORKDIR /app/
 # hadolint ignore=DL3018,DL3017
 RUN apk --no-cache upgrade && \
