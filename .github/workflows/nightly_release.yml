@@ -124,7 +124,7 @@ jobs:
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
       -
         name: Monitor published image for vulnerabilities with Snyk
-        uses: snyk/actions/docker@master
+        uses: snyk/actions/docker@9cf6ca713d71123d2d229cc3d7f145b96ea3c518 # master
         if: ${{ github.event_name != 'pull_request' }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -134,7 +134,7 @@ jobs:
           args: --file=Dockerfile --project-name=ghcr.io/${{ github.repository_owner }}/${{ env.prep_imagename }}:${{ env.prep_version }}
       -
         name: Test the image with Snyk for high-severity vulnerabilities
-        uses: snyk/actions/docker@master
+        uses: snyk/actions/docker@9cf6ca713d71123d2d229cc3d7f145b96ea3c518 # master
         if: ${{ github.event_name != 'pull_request' }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -144,7 +144,7 @@ jobs:
       -
         name: Output a SARIF file from Snyk
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: snyk/actions/docker@9cf6ca713d71123d2d229cc3d7f145b96ea3c518 # master
         if: ${{ github.event_name != 'pull_request' }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
