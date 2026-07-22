@@ -59,7 +59,7 @@ jobs:
           docker pull ${{needs.quick-build.outputs.imagename}}
       -
         name: Test the image with Snyk for high-severity vulnerabilities
-        uses: snyk/actions/docker@master
+        uses: snyk/actions/docker@8e119fbb6c251787721d34ba683ed48eba792766 # master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
