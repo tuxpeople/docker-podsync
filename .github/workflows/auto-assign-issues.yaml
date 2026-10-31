@@ -12,6 +12,6 @@ jobs:
       issues: write
     steps:
       - name: "Auto-assign issue"
-        uses: pozil/auto-assign-issue@d11e715efc663fe323c3d8d4d3cbbfdddd539baf # v1
+        uses: pozil/auto-assign-issue@d6e511896e5f1d2408e74db74416647d8ff80c8c # v4.1.0
         with:
           assignees: tuxpeople
