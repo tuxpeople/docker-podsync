@@ -1,3 +1,23 @@
+> [!IMPORTANT]
+> **This image is no longer maintained, use the official image instead:** [`ghcr.io/mxpv/podsync`](https://github.com/mxpv/podsync/pkgs/container/podsync). Upstream now ships yt-dlp ([mxpv/podsync#683](https://github.com/mxpv/podsync/pull/683)) and arm64 images, the two reasons this image existed. It also includes `deno`, which yt-dlp now needs for YouTube.
+>
+> It is a drop-in replacement (same `/app/config.toml`, same binary):
+>
+> ```yaml
+> image: ghcr.io/mxpv/podsync:v2.8.0   # or :nightly, built daily from master
+> ```
+>
+> With a release tag, let yt-dlp update itself in `config.toml`:
+>
+> ```toml
+> [downloader]
+> self_update = true
+> ```
+>
+> **arm/v6 and arm/v7:** upstream has no images for these. The last image here stays available but gets no updates.
+>
+> This repository is archived.
+
 # Podsync
 ![Github Workflow Badge](https://github.com/tuxpeople/docker-podsync/actions/workflows/release.yml/badge.svg)
 ![Github Last Commit Badge](https://img.shields.io/github/last-commit/tuxpeople/docker-podsync)
